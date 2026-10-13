@@ -1,0 +1,18 @@
+{
+ "subjects": [
+  {
+   "id": "english",
+   "grade": 5,
+   "name": "Bahasa Inggris",
+   "emoji": "🇬🇧",
+   "chapters": [
+    {
+     "n": 5,
+     "title": "I Am Wearing a Hat",
+     "emoji": "🧢",
+     "file": "g5-english-ch05.json"
+    }
+   ]
+  }
+ ]
+}
