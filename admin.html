@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin · Belajar Seru</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="index.html" aria-label="Beranda">🏠</a>⚙️ Panel Admin</div>
+  <main id="app"></main>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v)}catch(e){return ''}};
+const b64e=t=>btoa(unescape(encodeURIComponent(t)));
+const b64d=t=>decodeURIComponent(escape(atob(t.replace(/\n/g,''))));
+let pending=[]; // {name,text,obj,errors,warnings}
+
+function gate(){
+  let ok=false;try{ok=sessionStorage.getItem('adm')==='1'}catch(e){}
+  if(ok) return panel();
+  $('#app').innerHTML=`<div class="panel enter" style="margin-top:20px"><h1 class="pt" style="margin:0 0 10px">🔐 Masuk</h1>
+  <label class="fld"><span>Password</span><input id="pw" type="password" inputmode="numeric" autocomplete="off"></label>
+  <button class="btn big" id="in">Masuk</button><div class="msg err" id="m"></div></div>`;
+  const go=()=>{ if($('#pw').value===CFG.adminPass){try{sessionStorage.setItem('adm','1')}catch(e){}panel()} else $('#m').textContent='Password salah' };
+  $('#in').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+
+async function panel(){
+  $('#app').innerHTML=`<div class="enter">
+  <div class="panel"><b>1. Pengaturan GitHub</b> <span class="pn">(sekali saja, tersimpan di browser ini)</span>
+    <label class="fld"><span>Username GitHub</span><input id="own" value="${esc(LS('own'))}" placeholder="contoh: budi123"></label>
+    <label class="fld"><span>Nama repo</span><input id="rep" value="${esc(LS('rep'))}" placeholder="contoh: belajar-sd"></label>
+    <label class="fld"><span>Token (fine-grained, izin Contents: Read and write)</span><input id="tok" type="password" value="${esc(LS('tok'))}"></label>
+    <button class="btn small" id="sv">💾 Simpan</button></div>
+  <div class="panel" style="margin-top:14px"><b>2. Upload chapter</b>
+    <p class="pn" style="margin:4px 0">Pilih satu atau beberapa file seperti <code>g5-english-ch07.json</code></p>
+    <input type="file" id="fi" accept=".json,application/json" multiple>
+    <div id="list"></div>
+    <button class="btn big" id="up" style="display:none">🚀 Upload yang valid</button>
+    <div class="msg" id="st"></div></div>
+  <div class="panel" style="margin-top:14px"><b>3. Chapter yang sudah ada</b><div id="exist"><p class="pn">Memuat...</p></div></div></div>`;
+  $('#sv').onclick=()=>{LS('own',$('#own').value.trim());LS('rep',$('#rep').value.trim());LS('tok',$('#tok').value.trim());status('✅ Pengaturan tersimpan','ok')};
+  $('#fi').onchange=onFiles;
+  $('#up').onclick=upload;
+  loadExisting();
+}
+function status(t,c){const m=$('#st');m.className='msg '+(c==='ok'?'':'err');m.style.color=c==='ok'?'#1f6f47':'';m.innerHTML=t}
+
+/* ---------- validasi ---------- */
+function validate(name,o){
+  const er=[],wa=[];
+  const m=/^g(\d+)-([a-z0-9]+)-ch(\d{2,})\.json$/.exec(name);
+  if(!m) er.push('Nama file harus seperti g5-english-ch07.json (huruf kecil, tanpa spasi)');
+  const M=o.meta||{};
+  ['grade','subject','subjectName','chapter','title'].forEach(k=>{if(!M[k]) er.push('meta.'+k+' kosong')});
+  if(m&&M.grade&&(+m[1]!==+M.grade||m[2]!==M.subject||+m[3]!==+M.chapter)) er.push('Nama file tidak cocok dengan meta (grade / subject / chapter)');
+  if(!Array.isArray(o.pages)||!o.pages.length) er.push('pages kosong');
+  else o.pages.forEach((p,i)=>{
+    const t='Halaman '+(i+1)+': ';
+    if(!p.title) er.push(t+'title kosong');
+    if(p.type==='vocab'){ if(!Array.isArray(p.items)||!p.items.length||p.items.some(x=>!x.e||!x.en||!x.id)) er.push(t+'items vocab tidak lengkap (e, en, id)') }
+    else if(p.type==='explain'){ if(!Array.isArray(p.blocks)||!p.blocks.length) er.push(t+'blocks kosong') }
+    else if(p.type==='story'){ if(!Array.isArray(p.lines)||!p.lines.length||p.lines.some(x=>!x.en||!x.id)) er.push(t+'lines story tidak lengkap (en, id)') }
+    else er.push(t+'type harus vocab / explain / story');
+  });
+  if(!Array.isArray(o.quiz)||!o.quiz.length) er.push('quiz kosong');
+  else{
+    let h=0;
+    o.quiz.forEach((q,i)=>{
+      const t='Soal '+(i+1)+': ';
+      if(!q.q) er.push(t+'teks soal kosong');
+      if(!Array.isArray(q.options)||q.options.length<2) er.push(t+'options minimal 2');
+      else if(!Number.isInteger(q.answer)||q.answer<0||q.answer>=q.options.length) er.push(t+'answer di luar jumlah options');
+      if(q.level!=='medium'&&q.level!=='hard') er.push(t+'level harus medium atau hard');
+      if(q.level==='hard'){h++;if(!q.hint) wa.push(t+'soal susah tanpa hint')}
+    });
+    if(o.quiz.length!==20) wa.push('Jumlah soal '+o.quiz.length+' (standar 20)');
+    if(h!==5) wa.push('Soal susah '+h+' (standar 5)');
+  }
+  return {er,wa};
+}
+async function onFiles(e){
+  pending=[];
+  for(const f of e.target.files){
+    let text='',obj=null,er=[],wa=[];
+    try{ text=await f.text(); obj=JSON.parse(text); const v=validate(f.name,obj); er=v.er;wa=v.wa }
+    catch(x){ er=['Isi file bukan JSON yang valid: '+x.message] }
+    pending.push({name:f.name,text,obj,er,wa});
+  }
+  $('#list').innerHTML=pending.map(p=>`<div class="fl ${p.er.length?'badf':'okf'}"><b>${p.er.length?'❌':'✅'} ${esc(p.name)}</b>${p.obj&&p.obj.meta?` · ${esc(p.obj.meta.subjectName||'')} Ch ${esc(p.obj.meta.chapter||'')}: ${esc(p.obj.meta.title||'')}`:''}
+  ${p.er.length?'<ul class="err">'+p.er.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':''}
+  ${p.wa.length?'<ul class="warn">'+p.wa.map(x=>'<li>⚠️ '+esc(x)+'</li>').join('')+'</ul>':''}</div>`).join('');
+  $('#up').style.display=pending.some(p=>!p.er.length)?'block':'none';
+  status('');
+}
+
+/* ---------- GitHub API ---------- */
+function cfg(){
+  const o=LS('own'),r=LS('rep'),t=LS('tok');
+  if(!o||!r||!t) throw new Error('Isi dulu username, repo, dan token di bagian 1, lalu klik Simpan.');
+  return {o,r,t};
+}
+async function gh(path,method,body){
+  const {o,r,t}=cfg();
+  const res=await fetch(`https://api.github.com/repos/${o}/${r}/contents/${path}${method==='GET'||!method?'?ref='+CFG.branch+'&t='+Date.now():''}`,{
+    method:method||'GET',headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'},
+    body:body?JSON.stringify(Object.assign({branch:CFG.branch},body)):undefined});
+  if(res.status===404&&(method||'GET')==='GET') return null;
+  if(res.status===401) throw new Error('Token salah atau kedaluwarsa.');
+  if(res.status===403||res.status===404) throw new Error('Tidak ada izin / repo tidak ditemukan. Cek nama repo dan izin token (Contents: Read and write).');
+  if(!res.ok) throw new Error('GitHub error '+res.status);
+  return res.json();
+}
+async function getFile(path){
+  const j=await gh(path,'GET'); if(!j) return null;
+  return {sha:j.sha,text:b64d(j.content)};
+}
+const putFile=(path,text,sha,msg)=>gh(path,'PUT',{message:msg,content:b64e(text),sha:sha||undefined});
+
+function mergeIndex(idx,obj,name){
+  const M=obj.meta;idx.subjects=idx.subjects||[];
+  let s=idx.subjects.find(x=>x.id===M.subject&&+x.grade===+M.grade);
+  if(!s){s={id:M.subject,grade:+M.grade,name:M.subjectName,emoji:M.subjectEmoji||'📘',chapters:[]};idx.subjects.push(s)}
+  s.name=M.subjectName;if(M.subjectEmoji) s.emoji=M.subjectEmoji;
+  s.chapters=(s.chapters||[]).filter(c=>c.file!==name);
+  s.chapters.push({n:+M.chapter,title:M.title,emoji:M.emoji||'📖',file:name});
+  s.chapters.sort((a,b)=>a.n-b.n);
+  idx.subjects.sort((a,b)=>a.grade-b.grade||a.name.localeCompare(b.name));
+  return idx;
+}
+async function upload(){
+  const ok=pending.filter(p=>!p.er.length);
+  $('#up').disabled=true;
+  try{
+    let done=[];
+    for(const p of ok){
+      status('⏳ Mengunggah '+esc(p.name)+'...','ok');
+      const ex=await getFile('data/'+p.name);
+      await putFile('data/'+p.name,p.text,ex&&ex.sha,'Tambah/ubah '+p.name);
+      done.push(p);
+    }
+    status('⏳ Memperbarui daftar pelajaran...','ok');
+    const ix=await getFile('data/index.json');
+    let idx=ix?JSON.parse(ix.text):{subjects:[]};
+    done.forEach(p=>mergeIndex(idx,p.obj,p.name));
+    await putFile('data/index.json',JSON.stringify(idx,null,1),ix&&ix.sha,'Perbarui index pelajaran');
+    status('✅ Selesai ('+done.length+' file). GitHub Pages butuh sekitar 1–2 menit sebelum tampil di website.','ok');
+    $('#list').innerHTML='';$('#fi').value='';$('#up').style.display='none';pending=[];
+    loadExisting();
+  }catch(e){ status('❌ '+esc(e.message)) }
+  $('#up').disabled=false;
+}
+
+/* ---------- daftar & hapus ---------- */
+async function loadExisting(){
+  const box=$('#exist');
+  try{
+    const r=await fetch('data/index.json',{cache:'no-cache'});const idx=await r.json();
+    const rows=[];
+    (idx.subjects||[]).forEach(s=>(s.chapters||[]).forEach(c=>rows.push(`<div class="fl row"><span style="flex:1">${esc(s.emoji||'')} <b>${esc(s.name)}</b> · Kelas ${esc(s.grade)} · Ch ${esc(c.n)}: ${esc(c.title)}<br><span class="pn" style="margin:0">${esc(c.file)}</span></span><button class="btn ghost small" data-f="${esc(c.file)}">🗑️ Hapus</button></div>`)));
+    box.innerHTML=rows.length?rows.join(''):'<p class="pn">Belum ada chapter.</p>';
+    box.querySelectorAll('button[data-f]').forEach(b=>b.onclick=()=>del(b.dataset.f));
+  }catch(e){box.innerHTML='<p class="pn">Gagal memuat daftar.</p>'}
+}
+async function del(name){
+  if(!confirm('Hapus '+name+' dari website?')) return;
+  try{
+    status('⏳ Menghapus...','ok');
+    const ix=await getFile('data/index.json');
+    const idx=ix?JSON.parse(ix.text):{subjects:[]};
+    idx.subjects.forEach(s=>s.chapters=(s.chapters||[]).filter(c=>c.file!==name));
+    idx.subjects=idx.subjects.filter(s=>s.chapters.length);
+    await putFile('data/index.json',JSON.stringify(idx,null,1),ix&&ix.sha,'Hapus '+name+' dari index');
+    const f=await getFile('data/'+name);
+    if(f) await gh('data/'+name,'DELETE',{message:'Hapus '+name,sha:f.sha});
+    status('✅ Dihapus. Daftar akan terbarui dalam 1–2 menit.','ok');
+    loadExisting();
+  }catch(e){status('❌ '+esc(e.message))}
+}
+gate();
+</script>
+</body>
+</html>

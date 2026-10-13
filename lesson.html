@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Belajar</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="index.html" aria-label="Beranda">🏠</a><span id="ttl">Memuat...</span></div>
+  <div class="sub" id="sub"></div>
+  <main id="main"></main>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/\n/g,'<br>');
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/\*/g,''));u.lang='en-US';u.rate=.85;speechSynthesis.speak(u)}catch(e){}}
+
+const file=new URLSearchParams(location.search).get('f')||'';
+const KEY='belajar:'+file;
+let C=null,S=null;
+
+async function init(){
+  if(!/^[a-z0-9\-]+\.json$/.test(file)){ $('#main').innerHTML='<div class="empty">Chapter tidak ditemukan 😢</div>'; return; }
+  try{
+    const r=await fetch('data/'+file,{cache:'no-cache'});
+    if(!r.ok) throw 0;
+    C=await r.json();
+  }catch(e){ $('#main').innerHTML='<div class="empty">Gagal memuat chapter 😢</div>'; return; }
+  const M=C.meta;
+  $('#ttl').textContent=`Grade ${M.grade}: Chapter ${M.chapter} - ${M.title}`;
+  document.title=`${M.title} · Belajar`;
+  S=load();
+  if(!S||(S.quiz&&S.quiz.items.length!==C.quiz.length)||S.page>=C.pages.length) S={mode:'materi',page:0,quiz:null};
+  render(true);
+}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+function render(enter){
+  save();
+  window.scrollTo(0,0);
+  S.mode==='materi'?renderMateri():(S.quiz.done?renderResult():renderQuiz(enter));
+}
+
+/* ---------- MATERI ---------- */
+function renderMateri(){
+  const P=C.pages,p=P[S.page],last=S.page===P.length-1;
+  const quizOn=S.quiz&&!S.quiz.done;
+  $('#sub').innerHTML=`<span>Halaman ${S.page+1}/${P.length} (${esc(p.short||p.title)})</span><button class="pill" id="go">🎮 ${quizOn?'Lanjut Kuis':'Ke Kuis'}</button>`;
+  $('#go').onclick=goQuiz;
+  let h=`<div class="enter"><h1 class="pt">${esc(p.emoji||'')} ${esc(p.title)}</h1><p class="pn">Halaman ${S.page+1} dari ${P.length} Materi${p.note?' ('+esc(p.note)+')':''}</p>`;
+  if(p.type==='vocab'){
+    h+='<div class="grid">'+p.items.map((it,i)=>`<button class="vcard" data-i="${i}"><span class="e">${esc(it.e)}</span><span class="en">${esc(it.en)}</span><span class="id">${esc(it.id)}</span></button>`).join('')+'</div>';
+  }else if(p.type==='explain'){
+    h+='<div class="panel">'+(p.intro?`<p style="margin:0 0 4px;font-size:14px">${md(p.intro)}</p>`:'')+(p.blocks||[]).map(b=>
+      `<div class="blk ${esc(b.color||'')}"><h3>${esc(b.icon||'')} ${esc(b.title)}</h3>${b.text?`<p>${md(b.text)}</p>`:''}${b.ex?`<div class="ex">📌 <i>Contoh:</i> ${md(b.ex)} <button class="say" data-say="${esc(b.ex.replace(/\n/g,' '))}" aria-label="Dengar">🔊</button>${b.exId?`<div class="id">${md(b.exId)}</div>`:''}</div>`:''}</div>`).join('')+'</div>';
+  }else if(p.type==='story'){
+    h+='<div>'+p.lines.map((l,i)=>`<button class="line" data-i="${i}"><span class="en">🔊 ${esc(l.en)}</span><span class="tr">${esc(l.id)}</span></button>`).join('')+'</div><p class="pn" style="text-align:center">Sentuh kalimat untuk mendengar & melihat artinya 👆</p>';
+  }
+  const prev=S.page>0?`<button class="btn ghost" id="prev">← Hal ${S.page}</button>`:'';
+  const next=last?`<button class="btn" id="next">🎮 ${quizOn?'Lanjut Kuis':'Mulai Kuis'} →</button>`
+                 :`<button class="btn" id="next">Hal ${S.page+2}: ${esc(P[S.page+1].short||P[S.page+1].title)} →</button>`;
+  h+=`<div class="nav ${prev?'':'one'}">${prev}${next}</div></div>`;
+  $('#main').innerHTML=h;
+  if(prev) $('#prev').onclick=()=>{S.page--;render()};
+  $('#next').onclick=()=>{last?goQuiz():(S.page++,render())};
+  document.querySelectorAll('.vcard').forEach(b=>b.onclick=()=>{
+    b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');
+    speak(p.items[b.dataset.i].en);
+  });
+  document.querySelectorAll('.say').forEach(b=>b.onclick=()=>speak(b.dataset.say));
+  document.querySelectorAll('.line').forEach(b=>b.onclick=()=>{
+    b.classList.toggle('open');speak(p.lines[b.dataset.i].en);
+  });
+}
+function goQuiz(){
+  if(!S.quiz) S.quiz=buildQuiz();
+  S.mode='kuis';render(true);
+}
+
+/* ---------- KUIS ---------- */
+function buildQuiz(){
+  const idx=C.quiz.map((_,i)=>i);
+  const med=shuf(idx.filter(i=>C.quiz[i].level!=='hard'));
+  const hard=shuf(idx.filter(i=>C.quiz[i].level==='hard'));
+  const n=idx.length,h=hard.length,out=new Array(n).fill(null);
+  // soal susah disebar: satu di tiap "blok", soal pertama selalu medium
+  hard.forEach((id,k)=>{
+    const s=Math.max(1,Math.floor(k*n/h)),e=Math.max(s+1,Math.floor((k+1)*n/h));
+    out[s+Math.floor(Math.random()*(e-s))]=id;
+  });
+  let m=0;for(let i=0;i<n;i++) if(out[i]===null) out[i]=med[m++];
+  return {i:0,score:0,done:false,items:out.map(id=>({id,opts:shuf(C.quiz[id].options.map((_,k)=>k)),pick:null,hint:false}))};
+}
+function renderQuiz(enter){
+  const Q=S.quiz,n=Q.items.length,it=Q.items[Q.i],q=C.quiz[it.id];
+  const hard=q.level==='hard',answered=it.pick!==null;
+  $('#sub').innerHTML=`<span>Kuis ${n} Soal</span><button class="pill" id="peek">📖 Intip Materi</button>`;
+  $('#peek').onclick=()=>{S.mode='materi';render()};
+  const ok=answered&&it.opts[it.pick]===q.answer;
+  let h=`<div class="${enter?'enter':''}"><div class="bar"><i style="width:${(Q.i+(answered?1:0))/n*100}%"></i></div>
+  <div class="card"><div class="qtop"><span class="qno">Soal ${Q.i+1} / ${n}</span>${hard?'<span class="tag">🔥 Susah</span>':''}</div>
+  <h2 class="q">${Q.i+1}. ${md(q.q)}</h2>`;
+  it.opts.forEach((oi,k)=>{
+    let c='';
+    if(answered) c=oi===q.answer?'right':(k===it.pick?'wrong':'dim');
+    h+=`<button class="opt ${c}" data-k="${k}" ${answered?'disabled':''}>${esc(q.options[oi])}</button>`;
+  });
+  if(hard&&q.hint){
+    if(it.hint) h+=`<div class="hintbox">💡 ${md(q.hint)}</div>`;
+    else if(!answered) h+='<button class="hintbtn" id="hint">💡 Butuh Hint?</button>';
+  }
+  if(answered){
+    h+=`<div class="fb ${ok?'ok':'no'}" style="margin-top:12px">${ok?'🎉 Benar! Hebat!':'😅 Belum tepat. Jawaban benar: <b>'+esc(q.options[q.answer])+'</b>'}${q.explain?`<small>${md(q.explain)}</small>`:''}</div>
+    <button class="btn big" id="next">${Q.i===n-1?'🏆 Lihat Hasil':'Lanjut →'}</button>`;
+  }
+  $('#main').innerHTML=h+'</div></div>';
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    if(it.pick!==null) return;
+    it.pick=+b.dataset.k;
+    if(it.opts[it.pick]===q.answer) Q.score++;
+    save();renderQuiz(false);
+  });
+  const hb=$('#hint');if(hb) hb.onclick=()=>{it.hint=true;save();renderQuiz(false)};
+  const nb=$('#next');if(nb) nb.onclick=()=>{
+    if(Q.i===n-1){Q.done=true;render();confetti(Q.score/n)}
+    else{Q.i++;render(true)}
+  };
+}
+
+/* ---------- HASIL ---------- */
+function renderResult(){
+  const Q=S.quiz,n=Q.items.length,pct=Q.score/n;
+  let mOk=0,mAll=0,hOk=0,hAll=0;
+  Q.items.forEach(it=>{const q=C.quiz[it.id],ok=it.opts[it.pick]===q.answer;
+    if(q.level==='hard'){hAll++;if(ok)hOk++}else{mAll++;if(ok)mOk++}});
+  const st=pct>=.85?3:pct>=.6?2:1;
+  const msg=pct>=.9?'Luar biasa! Kamu hebat! 🏆':pct>=.7?'Bagus sekali! Terus semangat! 👏':pct>=.5?'Lumayan! Baca materi lagi lalu coba lagi 💪':'Jangan menyerah! Yuk baca materi dulu 📖';
+  $('#sub').innerHTML=`<span>Hasil Kuis</span><button class="pill" id="peek">📖 Baca Materi</button>`;
+  $('#peek').onclick=()=>{S.mode='materi';render()};
+  $('#main').innerHTML=`<div class="card res enter"><div class="trophy">${pct>=.7?'🏆':pct>=.5?'🥈':'🌱'}</div>
+  <div class="stars">${[1,2,3].map(i=>`<span style="animation-delay:${i*.25}s">${i<=st?'⭐':'☆'}</span>`).join('')}</div>
+  <p class="score">${Q.score} / ${n}</p><p>${msg}</p>
+  <p class="mut">Soal medium: ${mOk}/${mAll} · Soal susah: ${hOk}/${hAll}</p>
+  <p class="mut">${esc(C.meta.title)}</p>
+  <button class="btn big" id="again">🔁 Ulangi Kuis</button>
+  <button class="btn ghost big" id="mat">📖 Baca Materi Lagi</button></div>`;
+  $('#again').onclick=()=>{S.quiz=buildQuiz();S.mode='kuis';render(true)};
+  $('#mat').onclick=()=>{S.mode='materi';S.page=0;render()};
+}
+function confetti(p){
+  const box=document.createElement('div');box.className='confetti';
+  const em=p>=.7?['🎉','⭐','✨','🎊','🌟']:['⭐','✨','🌱'];
+  for(let i=0;i<(p>=.7?44:20);i++){
+    const s=document.createElement('span');
+    s.textContent=em[i%em.length];
+    s.style.left=Math.random()*100+'%';
+    s.style.fontSize=(18+Math.random()*20)+'px';
+    s.style.animationDuration=(2.2+Math.random()*1.6)+'s';
+    s.style.animationDelay=(Math.random()*.8)+'s';
+    box.appendChild(s);
+  }
+  document.body.appendChild(box);
+  setTimeout(()=>box.remove(),5000);
+}
+init();
+</script>
+</body>
+</html>

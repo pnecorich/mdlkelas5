@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Belajar Seru</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hero"><span class="big">🎒</span><h1>Belajar Seru</h1><p>Pilih pelajaran yuk!</p></div>
+  <main id="app"></main>
+  <div class="foot"><a href="admin.html">⚙️ Admin</a></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let D=null;
+
+async function init(){
+  try{
+    const r=await fetch('data/index.json',{cache:'no-cache'});
+    D=await r.json();
+  }catch(e){ $('#app').innerHTML='<div class="empty">Gagal memuat daftar pelajaran 😢</div>'; return; }
+  route();
+}
+window.addEventListener('hashchange',route);
+
+function route(){
+  const h=decodeURIComponent(location.hash.slice(1));
+  const subs=(D&&D.subjects)||[];
+  const s=subs.find(x=>x.grade+'-'+x.id===h);
+  s?showSubject(s):showHome(subs);
+}
+
+function showHome(subs){
+  if(!subs.length){ $('#app').innerHTML='<div class="empty">Belum ada pelajaran.<br>Tambahkan lewat panel admin ⚙️</div>'; return; }
+  const grades=[...new Set(subs.map(s=>s.grade))].sort((a,b)=>a-b);
+  let n=0,html='<div class="enter">';
+  grades.forEach(g=>{
+    html+=`<div class="gh">Kelas ${esc(g)}</div><div class="grid">`;
+    subs.filter(s=>s.grade===g).forEach(s=>{
+      html+=`<a class="scard c${n++%5}" href="#${encodeURIComponent(s.grade+'-'+s.id)}"><span class="e">${esc(s.emoji||'📘')}</span><b>${esc(s.name)}</b><small>${(s.chapters||[]).length} chapter</small></a>`;
+    });
+    html+='</div>';
+  });
+  $('#app').innerHTML=html+'</div>';
+}
+
+function showSubject(s){
+  const ch=(s.chapters||[]).slice().sort((a,b)=>a.n-b.n);
+  let html=`<div class="enter"><button class="back" onclick="location.hash=''">← Semua Pelajaran</button>
+  <h1 class="pt">${esc(s.emoji||'📘')} ${esc(s.name)}</h1><p class="pn">Kelas ${esc(s.grade)} · pilih chapter</p>`;
+  if(!ch.length) html+='<div class="empty">Belum ada chapter.</div>';
+  ch.forEach(c=>{
+    html+=`<a class="chap" href="lesson.html?f=${encodeURIComponent(c.file)}"><span class="e">${esc(c.emoji||'📖')}</span><span><small>Chapter ${esc(c.n)}</small><b>${esc(c.title)}</b></span><span class="go">›</span></a>`;
+  });
+  $('#app').innerHTML=html+'</div>';
+}
+init();
+</script>
+</body>
+</html>
