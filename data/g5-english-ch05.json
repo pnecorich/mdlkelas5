@@ -1,0 +1,101 @@
+{
+ "meta": {
+  "grade": 5, "subject": "english", "subjectName": "Bahasa Inggris", "subjectEmoji": "🇬🇧",
+  "chapter": 5, "title": "I Am Wearing a Hat", "emoji": "🧢"
+ },
+ "pages": [
+  { "type": "vocab", "title": "Topi & Atasan", "short": "Kosakata 1", "emoji": "👒", "note": "Sentuh kartu!",
+    "items": [
+     {"e":"👒","en":"Hat","id":"Topi"},
+     {"e":"🧢","en":"Cap","id":"Topi Bisbol"},
+     {"e":"⛑️","en":"Helmet","id":"Helm"},
+     {"e":"👔","en":"Shirt","id":"Kemeja"},
+     {"e":"👕","en":"T-Shirt","id":"Kaos"},
+     {"e":"🧥","en":"Jacket","id":"Jaket"}
+    ]},
+  { "type": "vocab", "title": "Luaran & Celana", "short": "Kosakata 2", "emoji": "🧶", "note": "Sentuh kartu!",
+    "items": [
+     {"e":"🥼","en":"Coat","id":"Mantel"},
+     {"e":"🧶","en":"Sweater","id":"Baju Hangat"},
+     {"e":"🧥","en":"Hoodie","id":"Jaket Kupluk"},
+     {"e":"👖","en":"Pants","id":"Celana Panjang"},
+     {"e":"🩳","en":"Shorts","id":"Celana Pendek"},
+     {"e":"👗","en":"Skirt / Dress","id":"Rok / Gaun"}
+    ]},
+  { "type": "vocab", "title": "Sepatu & Aksesori", "short": "Sepatu & Aksesori", "emoji": "👟", "note": "Sentuh kartu!",
+    "items": [
+     {"e":"👟","en":"Shoes","id":"Sepatu"},
+     {"e":"🧦","en":"Socks","id":"Kaus Kaki"},
+     {"e":"🩴","en":"Sandals","id":"Sandal"},
+     {"e":"👓","en":"Glasses","id":"Kacamata"},
+     {"e":"🧣","en":"Scarf","id":"Syal"},
+     {"e":"🧤","en":"Gloves","id":"Sarung Tangan"}
+    ]},
+  { "type": "vocab", "title": "Warna Pakaian", "short": "Warna", "emoji": "🎨", "note": "Sentuh kartu!",
+    "items": [
+     {"e":"🔴","en":"Red","id":"Merah"},
+     {"e":"🔵","en":"Blue","id":"Biru"},
+     {"e":"🟡","en":"Yellow","id":"Kuning"},
+     {"e":"🟢","en":"Green","id":"Hijau"},
+     {"e":"🩷","en":"Pink","id":"Merah Muda"},
+     {"e":"⚫","en":"Black","id":"Hitam"},
+     {"e":"⚪","en":"White","id":"Putih"},
+     {"e":"🟤","en":"Brown","id":"Cokelat"}
+    ]},
+  { "type": "explain", "title": "Bertanya & Menjawab", "short": "Tanya Jawab", "emoji": "❓",
+    "intro": "Untuk **bertanya** apa yang dipakai seseorang, pakai kata **What** dan **wearing**.",
+    "blocks": [
+     {"color":"red","icon":"❓","title":"Bertanya: What ... wearing?","text":"Susunan: **What** + am/is/are + orang + **wearing**?","ex":"What are you wearing?\nWhat is she wearing?","exId":"(Kamu sedang memakai apa?)\n(Dia perempuan sedang memakai apa?)"},
+     {"color":"blue","icon":"💬","title":"Menjawab","text":"Susunan: orang + am/is/are + **wearing** + pakaian.","ex":"I am wearing a red cap.","exId":"(Saya sedang memakai topi bisbol merah.)"},
+     {"color":"green","icon":"✅","title":"Pertanyaan Ya / Tidak","text":"Mulai dengan am/is/are. Jawab **Yes** atau **No**.","ex":"Is he wearing a hat?\nYes, he is. / No, he isn't.","exId":"(Apakah dia memakai topi? Ya. / Tidak.)"}
+    ]},
+  { "type": "explain", "title": "Cara Memakai TO BE (Is, Am, Are)", "short": "Belajar To Be", "emoji": "💡",
+    "intro": "Dalam Bahasa Inggris, saat mau bilang **\"sedang memakai\"**, gunakan **To Be** (am / is / are) sebelum kata **wearing**.",
+    "blocks": [
+     {"color":"red","icon":"🙋","title":"1. Gunakan \"AM\"","text":"Khusus untuk **I** (Saya).","ex":"**I am wearing** a hat.","exId":"(Saya sedang memakai topi.)"},
+     {"color":"blue","icon":"🧍","title":"2. Gunakan \"IS\"","text":"Untuk **1 orang** (She, He, Adara, Olivia).","ex":"**Adara is wearing** a pink dress.","exId":"(Adara sedang memakai gaun merah muda.)"},
+     {"color":"green","icon":"👨‍👩‍👧","title":"3. Gunakan \"ARE\"","text":"Untuk **banyak orang** (You, We, They, Adara & Olivia).","ex":"**They are wearing** shoes.","exId":"(Mereka sedang memakai sepatu.)"}
+    ]},
+  { "type": "story", "title": "Baca Cerita", "short": "Baca Cerita", "emoji": "📖",
+    "lines": [
+     {"en":"It is Monday morning.","id":"Pagi hari Senin."},
+     {"en":"Adara and Olivia are going to school.","id":"Adara dan Olivia pergi ke sekolah."},
+     {"en":"Adara is wearing a pink dress and white shoes.","id":"Adara memakai gaun merah muda dan sepatu putih."},
+     {"en":"Olivia is wearing a blue shirt and a black skirt.","id":"Olivia memakai kemeja biru dan rok hitam."},
+     {"en":"They are wearing red caps.","id":"Mereka memakai topi bisbol merah."},
+     {"en":"It is hot, so Adara is not wearing a jacket.","id":"Cuaca panas, jadi Adara tidak memakai jaket."},
+     {"en":"Mom says, \"You look great, girls!\"","id":"Ibu berkata, \"Kalian terlihat hebat, anak-anak!\""}
+    ]},
+  { "type": "story", "title": "Ayo Bercakap-cakap", "short": "Percakapan", "emoji": "💬",
+    "lines": [
+     {"en":"Adara: What are you wearing today, Olivia?","id":"Adara: Kamu memakai apa hari ini, Olivia?"},
+     {"en":"Olivia: I am wearing a blue shirt and a black skirt.","id":"Olivia: Aku memakai kemeja biru dan rok hitam."},
+     {"en":"Adara: Is Budi wearing a cap?","id":"Adara: Apakah Budi memakai topi bisbol?"},
+     {"en":"Olivia: Yes, he is. He is wearing a red cap.","id":"Olivia: Ya. Dia memakai topi bisbol merah."},
+     {"en":"Adara: Are they wearing jackets?","id":"Adara: Apakah mereka memakai jaket?"},
+     {"en":"Olivia: No, they aren't. It is hot today.","id":"Olivia: Tidak. Hari ini panas."}
+    ]}
+ ],
+ "quiz": [
+  {"level":"medium","q":"What do you wear on your head when riding a motorcycle?","options":["Shoes","Helmet","Socks","Jacket"],"answer":1,"explain":"Helmet = helm, dipakai di kepala saat naik motor."},
+  {"level":"medium","q":"What is \"topi\" in English?","options":["Hat","Shirt","Socks","Pants"],"answer":0,"explain":"Hat = topi."},
+  {"level":"medium","q":"We wear ___ on our feet.","options":["hats","gloves","shoes","scarves"],"answer":2,"explain":"Shoes = sepatu, dipakai di kaki."},
+  {"level":"medium","q":"I ___ wearing a blue T-shirt.","options":["am","is","are","be"],"answer":0,"explain":"Subjek I selalu memakai am."},
+  {"level":"medium","q":"She ___ wearing a pink dress.","options":["am","is","are","do"],"answer":1,"explain":"She = 1 orang, jadi pakai is."},
+  {"level":"medium","q":"They ___ wearing white shoes.","options":["am","is","are","was"],"answer":2,"explain":"They = banyak orang, jadi pakai are."},
+  {"level":"medium","q":"What is \"celana pendek\" in English?","options":["Pants","Shorts","Skirt","Coat"],"answer":1,"explain":"Shorts = celana pendek. Pants = celana panjang."},
+  {"level":"medium","q":"What keeps your neck warm in cold weather?","options":["Scarf","Sandals","Shorts","Cap"],"answer":0,"explain":"Scarf = syal, menghangatkan leher."},
+  {"level":"medium","q":"In the story, what are Adara and Olivia wearing on their heads?","options":["Helmets","Red caps","Scarves","Glasses"],"answer":1,"explain":"Di cerita: \"They are wearing red caps.\""},
+  {"level":"medium","q":"What do you wear to see better?","options":["Gloves","Socks","Glasses","Boots"],"answer":2,"explain":"Glasses = kacamata."},
+  {"level":"medium","q":"What color is Adara's dress in the story?","options":["Blue","Black","Green","Pink"],"answer":3,"explain":"Adara is wearing a pink dress."},
+  {"level":"medium","q":"\"Dia sedang memakai sepatu bot.\" = He is wearing ___.","options":["boots","gloves","a scarf","a hat"],"answer":0,"explain":"Boots = sepatu bot."},
+  {"level":"medium","q":"Which sentence is correct?","options":["He are wearing a cap.","He is wearing a cap.","He am wearing a cap.","He wearing is a cap."],"answer":1,"explain":"He = 1 orang, jadi He is wearing."},
+  {"level":"medium","q":"What do you wear on your hands in winter?","options":["Socks","Shoes","Gloves","Shorts"],"answer":2,"explain":"Gloves = sarung tangan."},
+  {"level":"medium","q":"\"Kaus kaki\" in English is ___.","options":["socks","shirt","shorts","skirt"],"answer":0,"explain":"Socks = kaus kaki."},
+  {"level":"hard","q":"Which question is correct?","options":["What you are wearing?","Are what you wearing?","What are you wearing?","What wearing you are?"],"answer":2,"hint":"Urutannya: What + am/is/are + orang + wearing?","explain":"Susunan benar: What are you wearing?"},
+  {"level":"hard","q":"Olivia and I ___ wearing sandals.","options":["am","is","are","be"],"answer":2,"hint":"Olivia dan I = 2 orang. Itu termasuk banyak orang.","explain":"Olivia and I = we (banyak orang), jadi pakai are."},
+  {"level":"hard","q":"\"Is she wearing a hat?\" \"Yes, she ___.\"","options":["are","is","am","does"],"answer":1,"hint":"Jawaban Yes/No memakai kata to be yang sama dengan pertanyaannya.","explain":"Pertanyaannya memakai Is, jadi jawab Yes, she is."},
+  {"level":"hard","q":"Which sentence is NOT correct?","options":["I am wearing a cap.","She is wearing boots.","They is wearing jackets.","We are wearing socks."],"answer":2,"hint":"Cari kalimat yang banyak orang tetapi memakai is.","explain":"They harus dengan are: They are wearing jackets."},
+  {"level":"hard","q":"Arrange the words: wearing / is / a / jacket / Budi / brown","options":["Budi wearing is a brown jacket.","Budi is wearing a brown jacket.","Is Budi wearing brown a jacket.","Budi is a wearing brown jacket."],"answer":1,"hint":"Susunan: orang + is + wearing + a + warna + pakaian.","explain":"Budi is wearing a brown jacket."}
+ ]
+}
